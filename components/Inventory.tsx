@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { Drug, AppSettings } from '../types';
-import { CURRENCY_SYMBOL } from '../constants';
 
 interface InventoryProps {
   inventory: Drug[];
   onAddDrug: (drug: Drug) => void;
+  onUpdateDrug: (drug: Drug) => void;
   onDeleteDrug: (id: string) => void;
   settings: AppSettings;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDrug, settings }) => {
+const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onUpdateDrug, onDeleteDrug, settings }) => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newDrug, setNewDrug] = useState<Partial<Drug>>({
     name: '', genericName: '', quantity: 0, price: 0, category: '', batchNumber: '', expiryDate: ''
   });
@@ -21,11 +22,23 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
     item.genericName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleAddClick = () => {
+    setEditingId(null);
+    setNewDrug({ name: '', genericName: '', quantity: 0, price: 0, category: '', batchNumber: '', expiryDate: '' });
+    setShowModal(true);
+  };
+
+  const handleEditClick = (drug: Drug) => {
+    setEditingId(drug.id);
+    setNewDrug({ ...drug });
+    setShowModal(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newDrug.name && newDrug.price) {
-        const drug: Drug = {
-            id: Date.now().toString(),
+        const drugData: Drug = {
+            id: editingId || Date.now().toString(),
             name: newDrug.name!,
             genericName: newDrug.genericName || '',
             quantity: Number(newDrug.quantity) || 0,
@@ -35,9 +48,16 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
             expiryDate: newDrug.expiryDate || new Date().toISOString().split('T')[0],
             description: newDrug.description || ''
         };
-        onAddDrug(drug);
+
+        if (editingId) {
+            onUpdateDrug(drugData);
+        } else {
+            onAddDrug(drugData);
+        }
+        
         setShowModal(false);
         setNewDrug({ name: '', genericName: '', quantity: 0, price: 0, category: '', batchNumber: '', expiryDate: '' });
+        setEditingId(null);
     }
   };
 
@@ -46,7 +66,7 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gidiDark">Inventory Management</h1>
         <button 
-            onClick={() => setShowModal(true)}
+            onClick={handleAddClick}
             className="bg-gidiBlue text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
             <i className="fa-solid fa-plus"></i> Add Product
@@ -91,7 +111,7 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
                         const isNearingExpiry = expiryDate >= today && expiryDate <= thresholdDate;
                         
                         return (
-                            <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
+                            <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
                                 <td className="px-6 py-4">
                                     <p className="font-medium text-gidiDark">{item.name}</p>
                                     <p className="text-xs text-gray-500">{item.genericName}</p>
@@ -118,10 +138,18 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
                                         {item.quantity}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-center">
+                                <td className="px-6 py-4 text-center flex justify-center gap-2">
+                                    <button 
+                                        onClick={() => handleEditClick(item)}
+                                        className="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gidiBlue hover:text-white transition-colors flex items-center justify-center"
+                                        title="Edit Product"
+                                    >
+                                        <i className="fa-solid fa-pen"></i>
+                                    </button>
                                     <button 
                                         onClick={() => onDeleteDrug(item.id)}
-                                        className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                                        className="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
+                                        title="Delete Product"
                                     >
                                         <i className="fa-solid fa-trash"></i>
                                     </button>
@@ -141,12 +169,12 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
         </div>
       </div>
 
-      {/* Add Drug Modal */}
+      {/* Add/Edit Drug Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-fade-in">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-gidiDark">Add New Product</h2>
+                    <h2 className="text-xl font-bold text-gidiDark">{editingId ? 'Edit Product' : 'Add New Product'}</h2>
                     <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                         <i className="fa-solid fa-times text-xl"></i>
                     </button>
@@ -197,11 +225,13 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
                             <option value="Antimalarial">Antimalarial</option>
                             <option value="Supplements">Supplements</option>
                             <option value="First Aid">First Aid</option>
+                            <option value="Skincare">Skincare</option>
+                            <option value="General">General</option>
                          </select>
                     </div>
                     
                     <button type="submit" className="w-full bg-gidiBlue text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors mt-4">
-                        Save Product
+                        {editingId ? 'Update Product' : 'Save Product'}
                     </button>
                 </form>
             </div>

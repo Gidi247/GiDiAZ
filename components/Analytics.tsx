@@ -31,7 +31,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ sales, inventory, currencySymbol 
     return acc;
   }, {} as Record<string, { name: string, quantity: number }>);
 
-  const topProducts = Object.values(productSales).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+  const topProducts = Object.values(productSales).sort((a: { quantity: number }, b: { quantity: number }) => b.quantity - a.quantity).slice(0, 5);
 
   // Payment Methods
   const paymentMethods = sales.reduce((acc, sale) => {

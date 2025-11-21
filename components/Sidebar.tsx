@@ -1,6 +1,5 @@
 import React from 'react';
 import { ViewState, User, AppSettings } from '../types';
-import { APP_LOGO } from '../constants';
 
 interface SidebarProps {
   currentView: ViewState;
@@ -22,11 +21,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, user, sett
   return (
     <div className="w-20 lg:w-64 bg-gidiDark text-white flex flex-col h-screen sticky top-0 shadow-xl transition-all duration-300 z-50">
       <div className="p-6 flex items-center justify-center lg:justify-start gap-3 border-b border-gray-700">
-        <img 
-            src={APP_LOGO} 
-            alt="GiDi Logo" 
-            className="w-10 h-10 rounded-lg shadow-lg shrink-0 object-cover bg-white" 
-        />
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gidiBlue to-gidiTeal flex items-center justify-center shadow-lg shrink-0">
+            <i className="fa-solid fa-plus text-white text-xl"></i>
+        </div>
         <div className="hidden lg:block overflow-hidden">
             <span className="text-xl font-bold block tracking-tight leading-none">GiDi<span className="text-gidiTeal">.</span></span>
             <span className="text-[10px] text-gray-400 truncate block">{settings.pharmacyName}</span>

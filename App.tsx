@@ -87,6 +87,10 @@ const App: React.FC = () => {
     setInventory(prev => [...prev, newDrug]);
   };
 
+  const handleUpdateDrug = (updatedDrug: Drug) => {
+    setInventory(prev => prev.map(d => d.id === updatedDrug.id ? updatedDrug : d));
+  };
+
   const handleDeleteDrug = (id: string) => {
     setInventory(prev => prev.filter(d => d.id !== id));
   };
@@ -119,7 +123,13 @@ const App: React.FC = () => {
       case 'DASHBOARD':
         return <Dashboard inventory={inventory} sales={sales} settings={settings} />;
       case 'INVENTORY':
-        return <Inventory inventory={inventory} onAddDrug={handleAddDrug} onDeleteDrug={handleDeleteDrug} settings={settings} />;
+        return <Inventory 
+                  inventory={inventory} 
+                  onAddDrug={handleAddDrug} 
+                  onUpdateDrug={handleUpdateDrug}
+                  onDeleteDrug={handleDeleteDrug} 
+                  settings={settings} 
+               />;
       case 'POS':
         return <POS inventory={inventory} onProcessSale={handleProcessSale} settings={settings} />;
       case 'AZARA':
