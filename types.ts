@@ -18,6 +18,8 @@ export interface AppSettings {
   email: string;
   currencySymbol: string;
   taxRate: number;
+  enableExpiryEmailAlerts: boolean;
+  expiryAlertThresholdDays: number;
 }
 
 export interface Drug {

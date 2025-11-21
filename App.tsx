@@ -117,9 +117,9 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (currentView) {
       case 'DASHBOARD':
-        return <Dashboard inventory={inventory} sales={sales} />;
+        return <Dashboard inventory={inventory} sales={sales} settings={settings} />;
       case 'INVENTORY':
-        return <Inventory inventory={inventory} onAddDrug={handleAddDrug} onDeleteDrug={handleDeleteDrug} />;
+        return <Inventory inventory={inventory} onAddDrug={handleAddDrug} onDeleteDrug={handleDeleteDrug} settings={settings} />;
       case 'POS':
         return <POS inventory={inventory} onProcessSale={handleProcessSale} settings={settings} />;
       case 'AZARA':
@@ -129,7 +129,7 @@ const App: React.FC = () => {
       case 'SETTINGS':
         return <Settings settings={settings} onUpdateSettings={handleUpdateSettings} />;
       default:
-        return <Dashboard inventory={inventory} sales={sales} />;
+        return <Dashboard inventory={inventory} sales={sales} settings={settings} />;
     }
   };
 

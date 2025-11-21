@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Drug } from '../types';
+import { Drug, AppSettings } from '../types';
 import { CURRENCY_SYMBOL } from '../constants';
 
 interface InventoryProps {
   inventory: Drug[];
   onAddDrug: (drug: Drug) => void;
   onDeleteDrug: (id: string) => void;
+  settings: AppSettings;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDrug }) => {
+const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDrug, settings }) => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [newDrug, setNewDrug] = useState<Partial<Drug>>({
@@ -81,13 +82,20 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
                 <tbody className="divide-y divide-gray-100">
                     {filteredInventory.map((item) => {
                         const isLowStock = item.quantity < 20;
-                        const isExpired = new Date(item.expiryDate) < new Date();
+                        const expiryDate = new Date(item.expiryDate);
+                        const today = new Date();
+                        const thresholdDate = new Date();
+                        thresholdDate.setDate(today.getDate() + settings.expiryAlertThresholdDays);
+
+                        const isExpired = expiryDate < today;
+                        const isNearingExpiry = expiryDate >= today && expiryDate <= thresholdDate;
                         
                         return (
                             <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
                                 <td className="px-6 py-4">
                                     <p className="font-medium text-gidiDark">{item.name}</p>
                                     <p className="text-xs text-gray-500">{item.genericName}</p>
+                                    {isNearingExpiry && <span className="text-[10px] text-amber-600 font-bold">Expiring Soon</span>}
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className="px-2 py-1 rounded-full bg-gray-100 text-xs font-medium text-gray-600 border border-gray-200">
@@ -96,12 +104,12 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
                                 </td>
                                 <td className="px-6 py-4">
                                     <p className="text-xs text-gray-600 font-mono">{item.batchNumber}</p>
-                                    <p className={`text-xs font-medium ${isExpired ? 'text-red-500' : 'text-gray-500'}`}>
+                                    <p className={`text-xs font-medium ${isExpired ? 'text-red-500' : isNearingExpiry ? 'text-amber-500' : 'text-gray-500'}`}>
                                         Exp: {item.expiryDate}
                                     </p>
                                 </td>
                                 <td className="px-6 py-4 text-right font-medium text-gidiDark">
-                                    {CURRENCY_SYMBOL} {item.price.toFixed(2)}
+                                    {settings.currencySymbol} {item.price.toFixed(2)}
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${
@@ -158,7 +166,7 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onAddDrug, onDeleteDru
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Price ({CURRENCY_SYMBOL})</label>
+                            <label className="block text-xs font-semibold text-gray-500 mb-1">Price ({settings.currencySymbol})</label>
                             <input required type="number" min="0" step="0.01" className="w-full p-2 border rounded-lg" 
                                 value={newDrug.price} onChange={e => setNewDrug({...newDrug, price: Number(e.target.value)})} />
                         </div>

@@ -1,19 +1,32 @@
 import React from 'react';
-import { Drug, Sale } from '../types';
+import { Drug, Sale, AppSettings } from '../types';
 import { CURRENCY_SYMBOL } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface DashboardProps {
   inventory: Drug[];
   sales: Sale[];
+  settings: AppSettings;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ inventory, sales }) => {
+const Dashboard: React.FC<DashboardProps> = ({ inventory, sales, settings }) => {
   // Calculations
+  const today = new Date();
+  const thresholdDate = new Date();
+  thresholdDate.setDate(today.getDate() + settings.expiryAlertThresholdDays);
+
   const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
   const totalProducts = inventory.length;
-  const lowStockCount = inventory.filter(d => d.quantity < 50 && d.quantity > 0).length;
-  const expiredCount = inventory.filter(d => new Date(d.expiryDate) < new Date()).length;
+  const lowStockCount = inventory.filter(d => d.quantity < 20 && d.quantity > 0).length;
+  
+  const expiredDrugs = inventory.filter(d => new Date(d.expiryDate) < today);
+  const expiringSoonDrugs = inventory.filter(d => {
+    const exp = new Date(d.expiryDate);
+    return exp >= today && exp <= thresholdDate;
+  });
+
+  const expiredCount = expiredDrugs.length;
+  const expiringSoonCount = expiringSoonDrugs.length;
 
   // Prepare chart data (Sales by day - mock logic for demo)
   const chartData = sales.slice(-7).map((sale, idx) => ({
@@ -43,7 +56,7 @@ const Dashboard: React.FC<DashboardProps> = ({ inventory, sales }) => {
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-gray-500 text-sm font-medium">Total Revenue</p>
-                    <h3 className="text-2xl font-bold text-gidiDark mt-1">{CURRENCY_SYMBOL} {totalRevenue.toFixed(2)}</h3>
+                    <h3 className="text-2xl font-bold text-gidiDark mt-1">{settings.currencySymbol} {totalRevenue.toFixed(2)}</h3>
                 </div>
                 <div className="bg-blue-50 p-2 rounded-lg text-gidiBlue">
                     <i className="fa-solid fa-wallet"></i>
@@ -83,16 +96,75 @@ const Dashboard: React.FC<DashboardProps> = ({ inventory, sales }) => {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-gray-500 text-sm font-medium">Expired</p>
-                    <h3 className="text-2xl font-bold text-gidiDark mt-1">{expiredCount}</h3>
+                    <p className="text-gray-500 text-sm font-medium">Expiring Soon</p>
+                    <h3 className="text-2xl font-bold text-gidiDark mt-1">{expiringSoonCount + expiredCount}</h3>
                 </div>
                 <div className="bg-red-50 p-2 rounded-lg text-gidiError">
-                    <i className="fa-solid fa-ban"></i>
+                    <i className="fa-solid fa-clock-rotate-left"></i>
                 </div>
             </div>
-            <p className="text-xs text-gidiError mt-2">Remove from shelf</p>
+            <p className="text-xs text-gidiError mt-2">{expiredCount} already expired</p>
         </div>
       </div>
+
+      {/* Alerts Section */}
+      {(expiredCount > 0 || expiringSoonCount > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+             {expiredCount > 0 && (
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-4 text-gidiError">
+                        <i className="fa-solid fa-circle-exclamation text-xl"></i>
+                        <h3 className="font-bold text-lg">Expired Products Detected</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">The following items have passed their expiry date and should be removed from shelves immediately.</p>
+                    <div className="bg-white rounded-xl overflow-hidden border border-red-100 shadow-sm">
+                        {expiredDrugs.map(drug => (
+                            <div key={drug.id} className="p-3 flex justify-between items-center border-b border-red-50 last:border-0 hover:bg-red-50/50">
+                                <div>
+                                    <p className="font-semibold text-gray-800 text-sm">{drug.name}</p>
+                                    <p className="text-xs text-gray-500">Batch: {drug.batchNumber}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs font-bold text-red-600">{drug.expiryDate}</p>
+                                    <p className="text-[10px] text-gray-400">Expired</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+             )}
+
+             {expiringSoonCount > 0 && (
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-4 text-gidiWarning">
+                        <i className="fa-solid fa-triangle-exclamation text-xl"></i>
+                        <h3 className="font-bold text-lg">Expiring Soon ({settings.expiryAlertThresholdDays} days)</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">These items are nearing their expiry date. Consider running promotions or returning to suppliers.</p>
+                    <div className="bg-white rounded-xl overflow-hidden border border-amber-100 shadow-sm">
+                        {expiringSoonDrugs.map(drug => (
+                            <div key={drug.id} className="p-3 flex justify-between items-center border-b border-amber-50 last:border-0 hover:bg-amber-50/50">
+                                <div>
+                                    <p className="font-semibold text-gray-800 text-sm">{drug.name}</p>
+                                    <p className="text-xs text-gray-500">Batch: {drug.batchNumber}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs font-bold text-amber-600">{drug.expiryDate}</p>
+                                    <p className="text-[10px] text-gray-400">Expires Soon</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                     {settings.enableExpiryEmailAlerts && (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-amber-700">
+                             <i className="fa-solid fa-envelope"></i>
+                             <span>Email alert sent to {settings.email}</span>
+                        </div>
+                    )}
+                </div>
+             )}
+        </div>
+      )}
 
       {/* Charts & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -126,7 +198,7 @@ const Dashboard: React.FC<DashboardProps> = ({ inventory, sales }) => {
                             <p className="text-sm font-semibold text-gidiDark">New Sale</p>
                             <p className="text-xs text-gray-500">{sale.items.length} items • {sale.paymentMethod}</p>
                         </div>
-                        <span className="font-bold text-sm text-gidiDark">{CURRENCY_SYMBOL}{sale.totalAmount.toFixed(2)}</span>
+                        <span className="font-bold text-sm text-gidiDark">{settings.currencySymbol}{sale.totalAmount.toFixed(2)}</span>
                     </div>
                 ))}
                 {sales.length === 0 && (

@@ -8,7 +8,9 @@ export const INITIAL_SETTINGS: AppSettings = {
   phoneNumber: '+233 00 000 0000',
   email: 'contact@gidipharmacy.com',
   currencySymbol: '₵',
-  taxRate: 0
+  taxRate: 0,
+  enableExpiryEmailAlerts: false,
+  expiryAlertThresholdDays: 90 // Default alert for drugs expiring in 3 months
 };
 
 export const INITIAL_INVENTORY: Drug[] = [
