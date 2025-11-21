@@ -7,7 +7,7 @@ import AzaraAI from './components/AzaraAI';
 import Auth from './components/Auth';
 import Settings from './components/Settings';
 import Analytics from './components/Analytics';
-import { ViewState, Drug, Sale, User, AppSettings } from './types';
+import { ViewState, Drug, Sale, User, AppSettings, BeforeInstallPromptEvent } from './types';
 import { INITIAL_INVENTORY, INITIAL_SETTINGS } from './constants';
 
 const App: React.FC = () => {
@@ -20,6 +20,9 @@ const App: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [settings, setSettings] = useState<AppSettings>(INITIAL_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
+
+  // PWA Install State
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   // Initialize / Load Data
   useEffect(() => {
@@ -49,6 +52,18 @@ const App: React.FC = () => {
     }
 
     setIsLoading(false);
+
+    // Listen for PWA Install Event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
 
   // Persist Data on Change
@@ -110,6 +125,17 @@ const App: React.FC = () => {
     setSettings(newSettings);
   };
 
+  const handleInstallApp = () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          setInstallPrompt(null);
+        }
+      });
+    }
+  };
+
   if (isLoading) return null;
 
   // If no user is logged in, show Auth screen
@@ -144,13 +170,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] font-sans text-slate-800 overflow-hidden">
+    <div className="flex h-screen bg-[#F8FAFC] font-sans text-slate-800 overflow-hidden select-none">
       <Sidebar 
         currentView={currentView} 
         onChangeView={setCurrentView} 
         user={user} 
         settings={settings}
         onLogout={handleLogout}
+        onInstallApp={installPrompt ? handleInstallApp : undefined}
       />
       <main className="flex-1 overflow-y-auto no-scrollbar relative">
         {renderContent()}

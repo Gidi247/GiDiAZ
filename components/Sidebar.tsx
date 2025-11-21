@@ -7,9 +7,10 @@ interface SidebarProps {
   user: User | null;
   settings: AppSettings;
   onLogout: () => void;
+  onInstallApp?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, user, settings, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, user, settings, onLogout, onInstallApp }) => {
   const menuItems: { id: ViewState; icon: string; label: string }[] = [
     { id: 'DASHBOARD', icon: 'fa-chart-pie', label: 'Dashboard' },
     { id: 'INVENTORY', icon: 'fa-boxes-stacked', label: 'Inventory' },
@@ -68,8 +69,18 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, user, sett
         </div>
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
-        <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-800/50 mb-2">
+      <div className="p-4 border-t border-gray-700 space-y-2">
+        {onInstallApp && (
+          <button 
+              onClick={onInstallApp}
+              className="w-full flex items-center gap-3 p-2 rounded-lg bg-gidiBlue/20 text-gidiBlue hover:bg-gidiBlue hover:text-white transition-colors mb-2 border border-gidiBlue/30"
+          >
+              <div className="w-8 flex justify-center"><i className="fa-solid fa-download"></i></div>
+              <span className="hidden lg:block text-xs font-bold">Install App</span>
+          </button>
+        )}
+
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-800/50">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gidiBlue to-gidiTeal flex items-center justify-center text-xs font-bold uppercase">
                 {user?.name.charAt(0) || 'U'}
             </div>
