@@ -1,6 +1,7 @@
 import { Drug, AppSettings } from './types';
 
 export const CURRENCY_SYMBOL = '₵';
+export const APP_LOGO = '/logo.png';
 
 export const INITIAL_SETTINGS: AppSettings = {
   pharmacyName: 'GiDi Pharmacy',

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Role } from '../types';
+import { APP_LOGO } from '../constants';
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -50,8 +51,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     <div className="min-h-screen flex items-center justify-center bg-gidiLight">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gidiBlue rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4">
-            <i className="fa-solid fa-plus text-white text-3xl"></i>
+          <div className="w-24 h-24 mx-auto mb-6">
+             <img src={APP_LOGO} alt="GiDi Logo" className="w-full h-full object-contain drop-shadow-xl rounded-2xl" />
           </div>
           <h1 className="text-3xl font-bold text-gidiDark">GiDi<span className="text-gidiTeal">.</span></h1>
           <p className="text-gray-500 mt-2">The Intelligent Healthcare Ecosystem</p>
