@@ -1,0 +1,7 @@
+{
+  "name": "GiDi + AZARA Healthcare",
+  "description": "A complete intelligent healthcare ecosystem combining pharmacy management with AZARA, an AI medical assistant.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
